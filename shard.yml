@@ -1,0 +1,13 @@
+name: cryogonal
+version: 0.1.0
+
+authors:
+  - Zac Nowicki <zachnowicki@gmail.com>
+
+crystal: 0.29.0
+
+targets:
+  example_shard:
+    main: examples/gateway_shard.cr
+
+license: MIT

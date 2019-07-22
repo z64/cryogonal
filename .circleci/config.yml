@@ -1,0 +1,34 @@
+version: 2
+
+jobs:
+  specs:
+    docker:
+      - image: crystallang/crystal:latest
+    steps:
+      - checkout
+      - run: crystal --version
+      - run: crystal spec
+
+  format:
+    docker:
+      - image: crystallang/crystal:latest
+    steps:
+      - checkout
+      - run: crystal --version
+      - run: crystal tool format --check
+
+  examples:
+    docker:
+      - image: crystallang/crystal:latest
+    steps:
+      - checkout
+      - run: crystal --version
+      - run: shards build --no-codegen
+
+workflows:
+  version: 2
+  ci:
+    jobs:
+      - specs
+      - format
+      - examples

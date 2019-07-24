@@ -16,6 +16,8 @@ module Cryogonal::Gateway
   #     # ..
   #   when Cryogonal::Gateway::Close
   #     # ..
+  #   when Cryogonal::Gateway::Disconnected
+  #     # ..
   #   end
   # end
   # ```

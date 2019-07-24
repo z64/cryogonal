@@ -48,6 +48,14 @@ module Cryogonal::Gateway
     @[JSON::Field(key: "t")]
     getter event_type : String?
 
+    # Constructor that turns `data_object` into an `IO::Memory`, for convenience.
+    def self.new(opcode : Opcode, sequence : Int64?, data_object, event_type : String?)
+      buffer = IO::Memory.new
+      data_object.to_json(buffer)
+      buffer.rewind
+      Packet.new(opcode, sequence, buffer, event_type)
+    end
+
     def initialize(@opcode : Opcode, @sequence : Int64?, @data : IO::Memory,
                    @event_type : String?)
     end

@@ -97,6 +97,11 @@ struct Cryogonal::Token
     io.print(')')
   end
 
+  # Writes the full token to the given builder.
+  def to_json(builder : JSON::Builder)
+    builder.string(@string)
+  end
+
   private def parse_client_id
     token_value = @string.lchop("Bot ")
     dot_index = token_value.index('.')

@@ -36,7 +36,7 @@ require "./snowflake"
 require "./token"
 
 require "./gateway/event"
-require "./gateway/event"
 require "./gateway/compressors"
 require "./gateway/decoders"
+require "./gateway/commands"
 require "./gateway/shard"

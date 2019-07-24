@@ -31,8 +31,8 @@ describe Cryogonal::Gateway::Packet do
     packet.event_type.should eq "event type"
   end
 
-  it "serializes" do
-    packet = Cryogonal::Gateway::Packet.new(:dispatch, 1, IO::Memory.new(%({"foo":"bar"})), "event type")
+  it "serializees" do
+    packet = Cryogonal::Gateway::Packet.new(Cryogonal::Gateway::Opcode::Dispatch, 1i64, IO::Memory.new(%({"foo":"bar"})), "event type")
     packet.to_json.should eq example_json
   end
 end

@@ -40,3 +40,5 @@ require "./gateway/compressors"
 require "./gateway/decoders"
 require "./gateway/commands"
 require "./gateway/shard"
+
+require "./rest/limit"

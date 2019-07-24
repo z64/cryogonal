@@ -31,7 +31,8 @@ spawn(shard.connect("wss://gateway.discord.gg?v=6&compress=zlib-stream"))
 while message = shard.receive
   case message
   when Cryogonal::Gateway::Connected
-    shard.identify(token, false, 250, {0, 1}, nil, true)
+    identify = Cryogonal::Gateway::Identify.new(token)
+    shard.send(identify)
   when Cryogonal::Gateway::Packet
     case message.opcode
     when .hello?
@@ -43,7 +44,8 @@ while message = shard.receive
       spawn do
         sleep(period_offset)
         while interval = state.hb_interval
-          shard.heartbeat(state.sequence)
+          heartbeat = Cryogonal::Gateway::Heartbeat.new(state.sequence)
+          shard.send(heartbeat)
           sleep(interval)
         end
       end

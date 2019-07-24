@@ -127,6 +127,24 @@ module Cryogonal::Gateway
       @ws.not_nil!.close(bytes)
     end
 
+    # Sends the given packet to the gateway.
+    #
+    # Raises if this shard is not connected yet. (See `Shard#connect`)
+    def send(packet : Packet)
+      json = packet.to_json
+      @logger.debug { "#{@name} Sending: #{json}" }
+      @ws.not_nil!.send(json)
+    end
+
+    # Sends the given payload to the gateway by calling `to_packet` on the
+    # passed-in payload, which should return a `Packet`. This is a convenience
+    # method for the case where a new opcode is added, it can be used in a
+    # forwards-compatible way for a future library update.
+    def send(payload)
+      packet = payload.to_packet
+      send(packet)
+    end
+
     # Identifies this shard on the gateway. This effectively authenticates
     # this shard and begins a *new* session. If you have a `SessionDescription`
     # from a previous session, you should try to use `Shard#resume` instead.
@@ -136,41 +154,17 @@ module Cryogonal::Gateway
     # NOTE: You can identify one shard every 5 seconds, and 1000 times within
     #   24 hours. A successful identification will yield a `READY` dispatch
     #   event.
-    #
-    # TODO: Internal identify struct
-    def identify(token : Token,
-                 compress : Bool,
-                 large_threshold : Int32,
-                 shard : Tuple(Int32, Int32),
-                 presence : Nil,
-                 guild_subscriptions : Bool)
-      token.bot_type!
-      payload = {
-        op: Opcode::Identify,
-        d:  {
-          token:      token.to_s,
-          properties: {
-            "$os":      "Linux",
-            "$browser": "cryogonal",
-            "$device":  "cryogonal",
-          },
-          compress:            compress,
-          shard:               shard,
-          guild_subscriptions: guild_subscriptions,
-        },
-      }.to_json
-      @logger.info("#{@name} Identifying with #{token.inspect} @ #{shard}")
-      @logger.debug { "#{@name} Sending: #{payload}" }
-      @ws.not_nil!.send(payload)
+    def send(payload : Identify)
+      packet = Packet.new(:identify, nil, payload, nil)
+      send(packet)
     end
 
     # Resumes a previous session, typically used after the shard was
     # disconnected for any reason. If the resume is successful, then
     # events that occured while the shard was disconnected will be replayed.
-    #
-    # Raises if this shard is not connected yet. (See `Shard#connect`)
-    def resume(token : Token, session : SessionDescription)
-      raise "unimplemented"
+    def send(payload : Resume)
+      packet = Packet.new(:resume, nil, payload, nil)
+      send(packet)
     end
 
     # Sends a heartbeat payload, used to maintain an existing connection.
@@ -183,39 +177,40 @@ module Cryogonal::Gateway
     # period_offset = rand(heartbeat_interval.total_seconds)
     # sleep(period_offset)
     # while true
-    #   shard.heartbeat(session.sequence)
+    #   heartbeat = Cryogonal::Gateway::Heartbeat.new(session.sequence)
+    #   shard.send(payload)
     #   sleep(heartbeat_interval)
     # end
     # ```
-    #
-    # Raises if this shard is not connected yet. (See `Shard#connect`)
-    def heartbeat(sequence : Int64? = nil)
-      payload = {
-        op: Opcode::Heartbeat,
-        d:  sequence,
-      }.to_json
-      @logger.debug { "#{@name} Sending: #{payload}" }
-      @ws.not_nil!.send(payload)
+    def send(payload : Heartbeat)
+      packet = Packet.new(:heartbeat, nil, payload.sequence, nil)
+      send(packet)
     end
 
-    # TODO: docs
-    def request_guild_members(guild_id : Snowflake)
-      raise "unimplemented"
+    # Requests a guild's members. If successful, they will be received in
+    # batches of 1000 memberes in `GUILD_MEMBER_CHUNK` events.
+    def send(payload : RequestGuildMembers)
+      packet = Packet.new(:heartbeat, nil, payload, nil)
+      send(packet)
     end
 
-    # TODO: docs
-    def update_voice_state
-      raise "unimplemented"
+    # Updates this shards voice state, used for initiating or finalizing
+    # a voice session.
+    def send(payload : UpdateVoiceState)
+      packet = Packet.new(:voice_state_update, nil, payload, nil)
+      send(packet)
     end
 
-    # TODO: docs
-    def update_status
-      raise "unimplemented"
+    # Updates this shards status. This includes showing the shard's current
+    # "game", as well as its "online/away/dnd/offline" indicator.
+    def send(payload : UpdateStatus)
+      packet = Packet.new(:status_update, nil, payload, nil)
+      send(packet)
     end
 
     # Receives the next gateway message from this shard. This can be
-    # a signal that the shard has connected, a packet, or a close frame.
-    # Returns `nil` if the shard has been disconnected.
+    # a signal that the shard has connected, a packet, a close frame,
+    # or a signal that the websocket connection closed.
     def receive : Event?
       @channel.receive?
     end

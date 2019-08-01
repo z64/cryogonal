@@ -66,7 +66,6 @@ module Cryogonal::REST
       end
 
       @logger.info("#{@name} #{trace} | #{request.method} #{request.path}#{request.query}")
-      connection ||= HTTP::Client.new(BASE_URI, tls: SSL_CONTEXT)
       response = connection.exec(request)
       status = response.status
       @logger.info("#{@name} #{trace} | #{status.code} #{status.description}")

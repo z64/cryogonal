@@ -9,5 +9,7 @@ crystal: 0.29.0
 targets:
   example_shard:
     main: examples/gateway_shard.cr
+  rate_limit_test:
+    main: examples/rate_limit_test.cr
 
 license: MIT

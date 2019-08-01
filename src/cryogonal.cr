@@ -42,3 +42,4 @@ require "./gateway/commands"
 require "./gateway/shard"
 
 require "./rest/limit"
+require "./rest/client"

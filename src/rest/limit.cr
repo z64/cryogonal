@@ -104,7 +104,7 @@ module Cryogonal::REST
       remaining_time = @reset_time - time
       if remaining_time >= Time::Span.zero
         @on_cooldown = true
-        @mutex.synchronize { sleep(remaining_time) }
+        @mutex.synchronize { sleep(remaining_time + 0.5.seconds) }
         @on_cooldown = false
       else
         raise "Cannot wait negative time for bucket (check clock sync? #{remaining_time})"

@@ -78,7 +78,7 @@ describe Cryogonal::REST::Bucket do
       wait_time.send(bucket.wait)
     end
     waited = wait_time.receive.try(&.to_f) || 0.0
-    waited.should be_close(1.0, 0.01)
+    waited.should be_close(1.5, 0.01)
     bucket.wait.should eq nil
   end
 end

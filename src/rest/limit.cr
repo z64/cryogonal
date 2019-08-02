@@ -150,13 +150,7 @@ module Cryogonal::REST
                      else
                        Time.unix(reset_time_value.to_i)
                      end
-        update(
-          key,
-          bucket_id,
-          limit_value.to_i,
-          remaining_value.to_i,
-          Time.unix(reset_time_value.to_i)
-        )
+        update(key, bucket_id, limit_value.to_i, remaining_value.to_i, reset_time)
       elsif retry_after_value
         server_time = nil
         if server_date_value

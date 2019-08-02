@@ -36,31 +36,31 @@ describe Cryogonal::REST::LimitTable do
 
     # key_a_1 and key_a_2 have different major parameter values, but point to
     # the same bucket. key_b_3 points to its own unique bucket.
-    table.get_by_key(key_a_1).should eq table.get_by_bucket("shared_bucket_1")
-    table.get_by_key(key_a_2).should eq table.get_by_bucket("shared_bucket_1")
-    table.get_by_key(key_b_3).should eq table.get_by_bucket("shared_bucket_2")
+    table[key_a_1].should eq table["shared_bucket_1"]
+    table[key_a_2].should eq table["shared_bucket_1"]
+    table[key_b_3].should eq table["shared_bucket_2"]
 
     # Buckets fetched from key_a_1 and key_a_2 will be synced: (both have 3/5)
-    bucket = table.get_by_key(key_a_1).not_nil!
+    bucket = table[key_a_1].not_nil!
     bucket.limit.should eq 5
     bucket.remaining.should eq 3
     bucket.reset_time.should eq reset_time
 
-    bucket = table.get_by_key(key_a_2).not_nil!
+    bucket = table[key_a_2].not_nil!
     bucket.limit.should eq 5
     bucket.remaining.should eq 3
     bucket.reset_time.should eq reset_time
 
     # Bucket fetched from key_b_3 has its own 1/1 limit:
-    bucket = table.get_by_key(key_b_3).not_nil!
+    bucket = table[key_b_3].not_nil!
     bucket.limit.should eq 1
     bucket.remaining.should eq 1
     bucket.reset_time.should eq reset_time
 
     # An new key has no value set:
     new_key = Cryogonal::REST::LimitKey.new(:get_resource_z, :none, Cryogonal::Snowflake.new(4))
-    table.get_by_key(new_key).should eq nil
-    table.get_by_bucket("unknown").should eq nil
+    table[new_key].should eq nil
+    table["unknown"].should eq nil
   end
 end
 

@@ -116,11 +116,11 @@ module Cryogonal::REST
       @bucket_id_index = Hash(String, Bucket).new
     end
 
-    def get_by_key(key : LimitKey) : Bucket?
+    def [](key : LimitKey) : Bucket?
       @bucket_key_index[key]?
     end
 
-    def get_by_bucket(id : String) : Bucket?
+    def [](id : String) : Bucket?
       @bucket_id_index[id]?
     end
 

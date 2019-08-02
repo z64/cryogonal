@@ -45,6 +45,10 @@ module Cryogonal::REST
   # Values that identify a client-side bucket key. This includes the HTTP route,
   # the type of major parameter, and its ID value, if any.
   record(LimitKey, route : Symbol, major_parameter : MajorParameter, id : Snowflake?) do
+    def self.global
+      LimitKey.new(:global, :none, nil)
+    end
+
     def inspect(io)
       io << '/' << @route << '/' << @major_parameter << '/' << @id || "none"
     end

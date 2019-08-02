@@ -45,15 +45,22 @@ module Cryogonal::REST
 
     private def send_internal(request : HTTP::Request, key : LimitKey, connection : HTTP::Client,
                               attempt_number : Int32, trace : String)
-      @limit_table.get_by_key(key).try do |bucket|
-        if waited = bucket.wait
-          @logger.debug { "#{@name} #{trace} | #{key} Waited #{waited} to acquire bucket" }
-        end
+      if attempt_number >= MAX_ATTEMPTS
+        # TODO: error class
+        raise "Max request attempts exceeded"
+      end
 
-        if bucket.next_will_limit
-          @logger.info("#{@name} #{trace} | #{key} Locked")
-          bucket.cooldown
-          @logger.info("#{@name} #{trace} | #{key} Released")
+      {@limit_table[LimitKey.global], @limit_table[key]}.each do |bucket|
+        if bucket
+          if waited = bucket.wait
+            @logger.debug { "#{@name} #{trace} | #{key} Waited #{waited} to acquire bucket" }
+          end
+
+          if bucket.next_will_limit
+            @logger.info("#{@name} #{trace} | #{key} Locked")
+            bucket.cooldown
+            @logger.info("#{@name} #{trace} | #{key} Released")
+          end
         end
       end
 
@@ -69,21 +76,27 @@ module Cryogonal::REST
       response = connection.exec(request)
       status = response.status
       @logger.info("#{@name} #{trace} | #{status.code} #{status.description}")
-      @limit_table.update(key, response.headers)
 
       case status
       when .success?
+        @limit_table.update(key, response.headers)
         response
-      when .too_many_requests?, .bad_gateway?
-        if attempt_number >= MAX_ATTEMPTS
-          # TODO: error class
-          raise "Max request attempts exceeded"
+      when .too_many_requests?
+        limit_details = ExceededLimit.from_json(response.body)
+        if limit_details.global
+          @limit_table.update(LimitKey.global, response.headers)
+        else
+          @limit_table.update(key, response.headers)
         end
         request.body.try(&.rewind)
         send_internal(request, key, connection, attempt_number + 1, trace)
       when .client_error?
         # TODO: error parsing & class
+        @limit_table.update(key, response.headers)
         raise "Request failed: #{response.body? || "(no body)"}"
+      when .bad_gateway?
+        request.body.try(&.rewind)
+        send_internal(request, key, connection, attempt_number + 1, trace)
       end
     end
   end

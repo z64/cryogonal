@@ -39,6 +39,9 @@ module Cryogonal::REST
       connection = HTTP::Client.new(BASE_URI, tls: SSL_CONTEXT)
       trace = rand(UInt32::MAX).to_s(16).rjust(8, '0')
       send_internal(request, key, connection, 1, trace)
+    rescue ex : APIException
+      @logger.error("[HTTP] Request #{request.method} #{request.path}#{request.query} failed: #{ex.inspect_with_backtrace}")
+      raise ex
     ensure
       connection.try(&.close)
     end
@@ -91,9 +94,8 @@ module Cryogonal::REST
         request.body.try(&.rewind)
         send_internal(request, key, connection, attempt_number + 1, trace)
       when .client_error?
-        # TODO: error parsing & class
         @limit_table.update(key, response.headers)
-        raise "Request failed: #{response.body? || "(no body)"}"
+        raise APIException.new(response)
       when .bad_gateway?
         request.body.try(&.rewind)
         send_internal(request, key, connection, attempt_number + 1, trace)

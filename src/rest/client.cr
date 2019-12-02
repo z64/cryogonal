@@ -39,7 +39,7 @@ module Cryogonal::REST
       connection = HTTP::Client.new(BASE_URI, tls: SSL_CONTEXT)
       trace = rand(UInt32::MAX).to_s(16).rjust(8, '0')
       send_internal(request, key, connection, 1, trace)
-    rescue ex : APIException
+    rescue ex
       @logger.error("[HTTP] Request #{request.method} #{request.path}#{request.query} failed: #{ex.inspect_with_backtrace}")
       raise ex
     ensure

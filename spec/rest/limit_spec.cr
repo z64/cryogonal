@@ -57,7 +57,7 @@ describe Cryogonal::REST::LimitTable do
     bucket.remaining.should eq 1
     bucket.reset_time.should eq reset_time
 
-    # An new key has no value set:
+    # A new key has no value set:
     new_key = Cryogonal::REST::LimitKey.new(:get_resource_z, :none, Cryogonal::Snowflake.new(4))
     table[new_key].should eq nil
     table["unknown"].should eq nil
